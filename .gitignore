@@ -1,11 +1,9 @@
-prefetcher/l1i_prefetcher.cc
-prefetcher/l1d_prefetcher.cc
-prefetcher/l2c_prefetcher.cc
-prefetcher/llc_prefetcher.cc
+prefetcher/*
 branch/branch_predictor.cc
-replacement/llc_replacement.cc
 
 inc/champsim.h.bak
 
 bin/
 obj/
+dpc3_traces/*
+results_1M/*

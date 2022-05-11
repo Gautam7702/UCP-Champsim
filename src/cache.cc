@@ -2,13 +2,18 @@
 #include "set.h"
 
 uint64_t l2pf_access = 0;
-
+// int t = 1000;
 void CACHE::handle_fill()
 {
     // handle fill
     uint32_t fill_cpu = (MSHR.next_fill_index == MSHR_SIZE) ? NUM_CPUS : MSHR.entry[MSHR.next_fill_index].cpu;
     if (fill_cpu == NUM_CPUS)
         return;
+    // if(t > 0) 
+    //   {
+    //     cout << endl << endl << MSHR.next_fill_index << " " << NAME << " "<< MSHR_SIZE <<  endl;
+    //     t--;
+    //   }
 
     if (MSHR.next_fill_cycle <= current_core_cycle[fill_cpu]) {
 

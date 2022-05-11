@@ -1,6 +1,7 @@
 #include "ooo_cpu.h"
 #include "set.h"
 
+// #include "cache.h"
 // out-of-order core
 O3_CPU ooo_cpu[NUM_CPUS]; 
 uint64_t current_core_cycle[NUM_CPUS], stall_cycle[NUM_CPUS];
@@ -1809,8 +1810,11 @@ void O3_CPU::operate_cache()
     DTLB.operate();
     STLB.operate();
     L1I.operate();
+    // cout << "HI" << endl;
     L1D.operate();
+    // cout << "HII" << endl;
     L2C.operate();
+    // cout << "HIII" << endl;
 
     // also handle per-cycle prefetcher operation
     l1i_prefetcher_cycle_operate();

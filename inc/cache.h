@@ -89,6 +89,7 @@ class CACHE : public MEMORY {
     uint32_t MAX_READ, MAX_FILL;
     uint32_t reads_available_this_cycle;
     uint8_t cache_type;
+    int app[16];
 
     // prefetch stats
     uint64_t pf_requested,
@@ -221,7 +222,8 @@ class CACHE : public MEMORY {
              get_way(uint64_t address, uint32_t set),
              find_victim(uint32_t cpu, uint64_t instr_id, uint32_t set, const BLOCK *current_set, uint64_t ip, uint64_t full_addr, uint32_t type),
              llc_find_victim(uint32_t cpu, uint64_t instr_id, uint32_t set, const BLOCK *current_set, uint64_t ip, uint64_t full_addr, uint32_t type),
-             lru_victim(uint32_t cpu, uint64_t instr_id, uint32_t set, const BLOCK *current_set, uint64_t ip, uint64_t full_addr, uint32_t type);
+             lru_victim(uint32_t cpu, uint64_t instr_id, uint32_t set, const BLOCK *current_set, uint64_t ip, uint64_t full_addr, uint32_t type),
+             llc_lru_victim(uint32_t cpu, uint64_t instr_id, uint32_t set, const BLOCK *current_set, uint64_t ip, uint64_t full_addr, uint32_t type);
 };
 
 #endif

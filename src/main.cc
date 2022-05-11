@@ -43,7 +43,6 @@ void print_roi_stats(uint32_t cpu, CACHE *cache)
         TOTAL_HIT += cache->roi_hit[cpu][i];
         TOTAL_MISS += cache->roi_miss[cpu][i];
     }
-
     cout << cache->NAME;
     cout << " TOTAL     ACCESS: " << setw(10) << TOTAL_ACCESS << "  HIT: " << setw(10) << TOTAL_HIT << "  MISS: " << setw(10) << TOTAL_MISS << endl;
 
@@ -499,6 +498,7 @@ void cpu_l1i_prefetcher_cache_fill(uint32_t cpu_num, uint64_t addr, uint32_t set
 
 int main(int argc, char** argv)
 {
+
 	// interrupt signal hanlder
 	struct sigaction sigIntHandler;
 	sigIntHandler.sa_handler = signal_handler;
@@ -512,6 +512,7 @@ int main(int argc, char** argv)
     uint8_t show_heartbeat = 1;
 
     uint32_t seed_number = 0;
+
 
     // check to see if knobs changed using getopt_long()
     int c;
@@ -530,7 +531,6 @@ int main(int argc, char** argv)
         int option_index = 0;
 
         c = getopt_long_only(argc, argv, "wihsb", long_options, &option_index);
-
         // no more option characters
         if (c == -1)
             break;
@@ -598,14 +598,18 @@ int main(int argc, char** argv)
     int count_traces = 0;
     cout << endl;
     for (int i=0; i<argc; i++) {
+        cout << argv[i] <<endl;
         if (found_traces)
         {
+            // for(int jj = 0;jj< NUM_CPUS;jj++)
+            // {
+            // cout << argv[i] <<endl;
             printf("CPU %d runs %s\n", count_traces, argv[i]);
-
             sprintf(ooo_cpu[count_traces].trace_string, "%s", argv[i]);
 
             std::string full_name(argv[i]);
             std::string last_dot = full_name.substr(full_name.find_last_of("."));
+            // cout << argv[i] <<endl;
 
             std::string fmtstr;
             std::string decomp_program;
@@ -646,9 +650,17 @@ int main(int argc, char** argv)
 
             char *pch[100];
             int count_str = 0;
-            pch[0] = strtok (argv[i], " /,.-");
+            // cout << argv[i] << " " << "&" << endl;
+            // cout << strlen(argv[i]) << endl;
+            char var[60];
+            for(int jj=0;jj<59;jj++)
+            var[jj] = argv[i][jj];
+            var[59] = '\0';
+            // for(int i=0;i<59;i++) cout << var[i] <<" ";
+            // cout << endl;
+            pch[0] = strtok (var, " /,.-");
             while (pch[count_str] != NULL) {
-                //printf ("%s %d\n", pch[count_str], count_str);
+                // printf ("%s %d\n", pch[count_str], count_str);
                 count_str++;
                 pch[count_str] = strtok (NULL, " /,.-");
             }
@@ -674,12 +686,13 @@ int main(int argc, char** argv)
                 printf("\n*** Too many traces for the configured number of cores ***\n\n");
                 assert(0);
             }
+            // }
         }
         else if(strcmp(argv[i],"-traces") == 0) {
             found_traces = 1;
         }
     }
-
+    // cout << count_traces << endl;
     if (count_traces != NUM_CPUS) {
         printf("\n*** Not enough traces for the configured number of cores ***\n\n");
         assert(0);
@@ -759,6 +772,22 @@ int main(int argc, char** argv)
         uncore.LLC.upper_level_icache[i] = &ooo_cpu[i].L2C;
         uncore.LLC.upper_level_dcache[i] = &ooo_cpu[i].L2C;
         uncore.LLC.lower_level = &uncore.DRAM;
+        uncore.LLC.app[0] = 0;
+        uncore.LLC.app[1] = 1;
+        uncore.LLC.app[2] = 0;
+        uncore.LLC.app[3] = 1;
+        uncore.LLC.app[4] = 0;
+        uncore.LLC.app[5] = 1;
+        uncore.LLC.app[6] = 0;
+        uncore.LLC.app[7] = 0;
+        uncore.LLC.app[8] = 1;
+        uncore.LLC.app[9] = 0;
+        uncore.LLC.app[10] = 0;
+        uncore.LLC.app[11] = 1;
+        uncore.LLC.app[12] = 0;
+        uncore.LLC.app[13] = 0;
+        uncore.LLC.app[14] = 0;
+        uncore.LLC.app[15] = 0;
 
         // OFF-CHIP DRAM
         uncore.DRAM.fill_level = FILL_DRAM;
@@ -826,7 +855,7 @@ int main(int argc, char** argv)
 
 	      // memory operation
 	      ooo_cpu[i].schedule_memory_instruction();
-	      ooo_cpu[i].execute_memory_instruction();
+	      ooo_cpu[i].execute_memory_instruction(); // cache operation is done from here
 
 	      ooo_cpu[i].update_rob();
 
