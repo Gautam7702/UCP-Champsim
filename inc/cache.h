@@ -14,6 +14,7 @@ extern uint32_t PAGE_TABLE_LATENCY, SWAP_LATENCY;
 #define IS_L1D  4
 #define IS_L2C  5
 #define IS_LLC  6
+#define IS_ATD  7
 
 // INSTRUCTION TLB
 #define ITLB_SET 16
@@ -81,8 +82,8 @@ extern uint32_t PAGE_TABLE_LATENCY, SWAP_LATENCY;
 class CACHE : public MEMORY {
   public:
     uint32_t cpu;
-    const string NAME;
-    const uint32_t NUM_SET, NUM_WAY, NUM_LINE, WQ_SIZE, RQ_SIZE, PQ_SIZE, MSHR_SIZE;
+    string NAME;
+    uint32_t NUM_SET, NUM_WAY, NUM_LINE, WQ_SIZE, RQ_SIZE, PQ_SIZE, MSHR_SIZE;
     uint32_t LATENCY;
     BLOCK **block;
     int fill_level;
@@ -115,6 +116,7 @@ class CACHE : public MEMORY {
     uint64_t total_miss_latency;
     
     // constructor
+    CACHE();
     CACHE(string v1, uint32_t v2, int v3, uint32_t v4, uint32_t v5, uint32_t v6, uint32_t v7, uint32_t v8) 
         : NAME(v1), NUM_SET(v2), NUM_WAY(v3), NUM_LINE(v4), WQ_SIZE(v5), RQ_SIZE(v6), PQ_SIZE(v7), MSHR_SIZE(v8) {
 
@@ -167,11 +169,11 @@ class CACHE : public MEMORY {
     };
 
     // functions
-    int  add_rq(PACKET *packet),
-         add_wq(PACKET *packet),
-         add_pq(PACKET *packet);
+    int  add_rq(PACKET *packet),  // not needed in ATD
+         add_wq(PACKET *packet),  // not needed in ATD
+         add_pq(PACKET *packet);  // not needed in ATD
 
-    void return_data(PACKET *packet),
+    void return_data(PACKET *packet), // not needed in ATD
          operate(),
          increment_WQ_FULL(uint64_t address);
 
@@ -195,6 +197,7 @@ class CACHE : public MEMORY {
          update_replacement_state(uint32_t cpu, uint32_t set, uint32_t way, uint64_t full_addr, uint64_t ip, uint64_t victim_addr, uint32_t type, uint8_t hit),
          llc_update_replacement_state(uint32_t cpu, uint32_t set, uint32_t way, uint64_t full_addr, uint64_t ip, uint64_t victim_addr, uint32_t type, uint8_t hit),
          lru_update(uint32_t set, uint32_t way),
+         llc_lru_update(uint32_t set, uint32_t way,int cpu),
          fill_cache(uint32_t set, uint32_t way, PACKET *packet),
          replacement_final_stats(),
          llc_replacement_final_stats(),

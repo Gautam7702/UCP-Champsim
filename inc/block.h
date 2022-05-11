@@ -6,6 +6,16 @@
 #include "set.h"
 
 // CACHE BLOCK
+
+
+class SPECIAL_BLOCK{
+    public:
+    uint8_t valid;
+    uint64_t tag;
+    uint32_t lru;
+};
+
+
 class BLOCK {
   public:
     uint8_t valid,
@@ -50,6 +60,8 @@ class BLOCK {
         lru = 0;
     };
 };
+
+
 
 // DRAM CACHE BLOCK
 class DRAM_ARRAY {

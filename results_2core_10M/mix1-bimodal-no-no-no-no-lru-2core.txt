@@ -1,0 +1,28 @@
+
+*** ChampSim Multicore Out-of-Order Simulator ***
+
+Warmup Instructions: 1000000
+Simulation Instructions: 10000000
+Number of CPUs: 2
+LLC sets: 4096
+LLC ways: 16
+Off-chip DRAM Size: 4096 MB Channels: 1 Width: 64-bit Data Rate: 3200 MT/s
+
+./bin/bimodal-no-no-no-no-lru-2core
+-warmup_instructions
+1000000
+-simulation_instructions
+10000000
+-traces
+/home/nishant/Desktop/UCP-Champsim/dpc3_traces/gcc_13B.trace.xz
+CPU 0 runs /home/nishant/Desktop/UCP-Champsim/dpc3_traces/gcc_13B.trace.xz
+/home/nishant/Desktop/UCP-Champsim/dpc3_traces/gcc_39B.trace.xz
+CPU 1 runs /home/nishant/Desktop/UCP-Champsim/dpc3_traces/gcc_39B.trace.xz
+CPU 0 Bimodal branch predictor
+CPU 1 Bimodal branch predictor
+
+Warmup complete CPU 0 instructions: 1000003 cycles: 556148 (Simulation time: 0 hr 0 min 5 sec) 
+Warmup complete CPU 1 instructions: 1466464 cycles: 556147 (Simulation time: 0 hr 0 min 5 sec) 
+
+Heartbeat CPU 1 instructions: 10000003 cycles: 7163356 heartbeat IPC: 1.39599 cumulative IPC: 1.29155 (Simulation time: 0 hr 0 min 30 sec) 
+Finished CPU 1 instructions: 10000001 cycles: 7755571 cumulative IPC: 1.2894 (Simulation time: 0 hr 0 min 35 sec) 
