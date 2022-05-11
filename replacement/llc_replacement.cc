@@ -10,7 +10,7 @@ void CACHE::llc_initialize_replacement()
 uint32_t CACHE::llc_find_victim(uint32_t cpu, uint64_t instr_id, uint32_t set, const BLOCK *current_set, uint64_t ip, uint64_t full_addr, uint32_t type)
 {
     // baseline LRU
-    return llc_lru_victim(cpu, instr_id, set, current_set, ip, full_addr, type); 
+    return lru_victim(cpu, instr_id, set, current_set, ip, full_addr, type); 
 }
 
 // called on every cache hit and cache fill
