@@ -1,71 +1,98 @@
 #ifndef UMON_H
 #define UMON_H
-#include "champsim.h"
+
 #include "cache.h"
-#include "dram_controller.h"
+#include "champsim.h"
 
+class META{
+	public:
+		uint8_t valid;
+		uint64_t tag;
 
+		META(){
+			valid = 0;
+			tag = -1;
+		};
 
-class ATD:public CACHE{
-    public:
-    SPECIAL_BLOCK **block;
-    ATD(string v1, uint32_t v2, int v3, uint32_t v4, uint32_t v5, uint32_t v6, uint32_t v7, uint32_t v8) 
-         {
-            NAME = v1;
-            NUM_SET = v2;
-            NUM_WAY = v3;
-            NUM_LINE = v4;
-            WQ_SIZE = v5;
-            RQ_SIZE = v6;
-            PQ_SIZE = v7;
-            MSHR_SIZE = v8;
-        LATENCY = 0;
-
-        // cache block
-        block = new SPECIAL_BLOCK* [NUM_SET];
-        for (uint32_t i=0; i<NUM_SET; i++) {
-            block[i] = new SPECIAL_BLOCK[NUM_WAY]; 
-
-            for (uint32_t j=0; j<NUM_WAY; j++) {
-                block[i][j].lru = j;
-            }
-        }
-
-        for (uint32_t i=0; i<NUM_CPUS; i++) {
-            upper_level_icache[i] = NULL;
-            upper_level_dcache[i] = NULL;
-
-            for (uint32_t j=0; j<NUM_TYPES; j++) {
-                sim_access[i][j] = 0;
-                sim_hit[i][j] = 0;
-                sim_miss[i][j] = 0;
-                roi_access[i][j] = 0;
-                roi_hit[i][j] = 0;
-                roi_miss[i][j] = 0;
-            }
-        }
-
-	total_miss_latency = 0;
-
-        lower_level = NULL;
-        extra_interface = NULL;
-        fill_level = -1;
-        MAX_READ = 1;
-        MAX_FILL = 1;
-
-        pf_requested = 0;
-        pf_issued = 0;
-        pf_useful = 0;
-        pf_useless = 0;
-        pf_fill = 0;
-    };
+		META(BLOCK block){
+			valid = block.valid;
+			tag = block.tag;
+		};
 };
+
 class UMON{
-    public:
-    ATD atd{"ATD",32,16,32*16,LLC_WQ_SIZE, LLC_RQ_SIZE, LLC_PQ_SIZE, LLC_MSHR_SIZE};
-    UMON(); 
-};
+	public:
+		META** table;
+		uint64_t SETS, WAYS;
+		uint64_t* counter;
 
-extern UMON umon[NUM_CPUS];
+		UMON(){
+			SETS = 32;
+			WAYS = LLC_WAY;
+			counter = new uint64_t[WAYS];
+			for(int i = 0; i < WAYS; i++){
+				counter = 0;
+			}
+			for(uint32_t i = 0; i < SETS; i++){
+				table[i] = new META[WAYS];
+			}
+		}
+
+		uint32_t get_set(uint64_t address){
+		    return (uint32_t) (address & ((1 << lg2(LLC_SET)) - 1)); 
+		};
+
+		uint32_t get_way(uint64_t address, uint32_t set){
+			uint32_t way;
+		    for (way = 0; way < WAYS; way++) {
+		        if (table[set][way].valid && (table[set][way].tag == address))	break;
+		    }
+
+		    return way;
+		};
+		
+		bool access_block(BLOCK b){
+			int s = get_set(b.address);
+			if(s < SETS){
+				int w = get_way(b.address, s);
+				if(w != WAYS){
+					counter[w]++;
+					META n = table[s][0];
+					for(int i = 0; i < w; i++){
+						META temp = table[s][i+1];
+						table[s][i+1] = n;
+						n = temp;
+					}
+					table[s][0] = n;
+					return true;
+				}
+				addMeta(b);
+			}
+			return false;
+		};
+
+	private:
+		uint32_t find_victim(uint32_t s){
+			for(int i = 0; i < WAYS; i++){
+				if(!table[s][i].valid)	return i;
+			}
+			return WAYS-1;
+		}
+
+		void addMeta(BLOCK b){
+			META m(b);
+			int s = get_set(b.address);
+			if(s < SETS){
+				int w = find_victim(s);
+				META n = table[s][0];
+				for(int i = 0; i < w; i++){
+					META temp = table[s][i+1];
+					table[s][i+1] = n;
+					n = temp;
+				}
+				table[s][0] = m;
+			}
+		}
+};
 
 #endif
