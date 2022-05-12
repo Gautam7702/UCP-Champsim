@@ -1,5 +1,6 @@
 #include "cache.h"
 #include "set.h"
+#include "uncore.h"
 
 uint64_t l2pf_access = 0;
 // int t = 1000;
@@ -244,6 +245,9 @@ void CACHE::handle_writeback()
         // access cache
         uint32_t set = get_set(WQ.entry[index].address);
         int way = check_hit(&WQ.entry[index]);
+		if(cache_type == IS_LLC){
+			uncore.umon[writeback_cpu].access_block(WQ.entry[index].address);
+		}
         
         if (way >= 0) { // writeback hit (or RFO hit for L1D)
 
@@ -542,6 +546,9 @@ void CACHE::handle_read()
             // access cache
             uint32_t set = get_set(RQ.entry[index].address);
             int way = check_hit(&RQ.entry[index]);
+			if(cache_type == IS_LLC){
+				uncore.umon[read_cpu].access_block(RQ.entry[index].address);
+			}
             
             if (way >= 0) { // read hit
 

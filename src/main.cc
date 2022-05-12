@@ -944,6 +944,14 @@ int main(int argc, char** argv)
         uncore.LLC.operate();
     }
 
+	cout << "UMON Hits\n";
+	for(int i = 0; i < NUM_CPUS; i++){
+		cout << "CPU " << i << endl;
+		for(int j = 0; j < LLC_WAY; j++){
+			cout << "\tWAY " << j << ": " << uncore.umon[i].counter[j] <<endl;
+		}
+	}
+
     uint64_t elapsed_second = (uint64_t)(time(NULL) - start_time),
              elapsed_minute = elapsed_second / 60,
              elapsed_hour = elapsed_minute / 60;
