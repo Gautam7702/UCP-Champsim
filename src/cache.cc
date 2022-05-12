@@ -252,6 +252,7 @@ void CACHE::handle_writeback()
         if (way >= 0) { // writeback hit (or RFO hit for L1D)
 
             if (cache_type == IS_LLC) {
+				// cout << "SET: " << set << " SET%32: " << set%32 << endl;
                 llc_update_replacement_state(writeback_cpu, set, way, block[set][way].full_addr, WQ.entry[index].ip, 0, WQ.entry[index].type, 1);
 
             }
@@ -592,6 +593,7 @@ void CACHE::handle_read()
 
                 // update replacement policy
                 if (cache_type == IS_LLC) {
+					// cout << "SET: " << set << " SET%32: " << set%32 << endl;
                     llc_update_replacement_state(read_cpu, set, way, block[set][way].full_addr, RQ.entry[index].ip, 0, RQ.entry[index].type, 1);
 
                 }

@@ -30,7 +30,7 @@ class UMON{
 		uint64_t* counter;
 
 		UMON(){
-			SETS = 32;
+			SETS = LLC_SET/32;
 			WAYS = LLC_WAY;
 			counter = new uint64_t[WAYS];
 			table = new META*[SETS];
@@ -43,8 +43,9 @@ class UMON{
 		}
 		
 		bool access_block(uint64_t addr){
-			int s = get_set(addr);
-			if(s < SETS){
+			int s = get_set(addr); 
+			if(s%32 == 0 && s/32 < SETS){
+				s /= 32;
 				int w = get_way(addr, s);
 				if(w != WAYS){
 					counter[table[s][w].lru]++;
@@ -67,6 +68,7 @@ class UMON{
 				delete[] table[i];
 			}
 			delete[] table;
+			delete[] counter;
 		}
 
 	private:
