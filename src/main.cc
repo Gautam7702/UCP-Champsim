@@ -515,11 +515,6 @@ void look_ahead(){
             uncore.LLC.max_way[i] = 1;
         }
         int balance = LLC_WAY - NUM_CPUS;
-        while(1){   
-            if(balance<=0){
-              break;
-            }
-        int balance = LLC_WAY - NUM_CPUS;
         while(1)
             {   
                 if(balance<=0){
@@ -532,86 +527,65 @@ void look_ahead(){
                 int mx_val = 1;
 
                 int assign_core = -1;
-                for(int i=0;i<NUM_CPUS;i++)
-                {
+                for(int i=0;i<NUM_CPUS;i++){
                     double var = 0;
                     int mx_val_loc=20;
                     int initial = uncore.LLC.max_way[i];
-                    for(int j = initial+1;j<= (balance + uncore.LLC.max_way[i]);j++)
-                        {
-                            double mu = findMU(uncore.LLC.max_way[i],j,i);
-                            if(mu>var){
-                                var = mu;
-                                mx_val_loc = j - initial;
+                    for(int j = initial+1;j<= (balance + uncore.LLC.max_way[i]);j++){
+                        double mu = findMU(uncore.LLC.max_way[i],j,i);
+                        if(mu>var){
+                            var = mu;
+                            mx_val_loc = j - initial;
+                        }
+                        else if(mu == var){
+                            mx_val_loc = min(mx_val_loc,j - initial);
+                        }
+                    }
+                    if(var > mx){
+                        mx = var;
+                        assign_core = i;
+                        mx_val = mx_val_loc;
+                    }
+                    else if(var == mx){
+                        if(assign_core == -1)
+                            {
+                                assign_core = i;
+                                mx_val = mx_val_loc;
                             }
-                            else if(mu == var){
-                                mx_val_loc = min(mx_val_loc,j - initial);
+                        else if(mx_val_loc <= mx_val)
+                            {
+                                mx_val_loc = mx_val;
+                                assign_core = i;
                             }
-                        }
-                    if(var > mx)
-                        {
-                            mx = var;
-                            assign_core = i;
-                            mx_val = mx_val_loc;
-                        }
-                    else if(var == mx)
-                        {
-                            if(assign_core == -1)
-                                {
-                                    assign_core = i;
-                                    mx_val = mx_val_loc;
-                                }
-                            else if(mx_val_loc <= mx_val)
-                                {
-                                    mx_val_loc = mx_val;
-                                    assign_core = i;
-                                }
-                        }
-                        // if(mx_val_loc==0){
-                        //     int ini = i;
-                        //     while(balance>0){
-                        //         uncore.LLC.max_way[ini%NUM_CPUS] += 1;
-                        //         ini++;
-                        //         balance -= 1;
-                        //     }
-                        //     break;
-                        // }
+                    }
                 }
-                    balance -= mx_val;
-                    uncore.LLC.max_way[assign_core] += mx_val;
+                balance -= mx_val;
+                uncore.LLC.max_way[assign_core] += mx_val;
             }
-    }
+}
 
 void greedy(){
 
-        for(int i=0;i<NUM_CPUS;i++)
-            {
-                uncore.LLC.max_way[i] = 1;
-            }
-        int balance = 16 - NUM_CPUS;
-        while(balance--)
-            {
-                int target_cpu = 0,maxm_inc= 0;
-                for(int i=0;i<NUM_CPUS;i++)
-                    {
-                        int hit_inc = uncore.umon[i].counter[uncore.LLC.max_way[i]];
-                        if(hit_inc> maxm_inc)
-                        {
-                            maxm_inc = hit_inc;
-                            target_cpu=i;
-                        }
-                    }
-                uncore.LLC.max_way[target_cpu]++;
-            }
-            balance -= (mx_val-uncore.LLC.max_way[assign_core]);
-            uncore.LLC.max_way[assign_core] = mx_val;
+    for(int i=0;i<NUM_CPUS;i++)
+        {
+            uncore.LLC.max_way[i] = 1;
         }
-		for(int i = 0; i < NUM_CPUS; i++){
-			for(int j = 0; j < LLC_WAY; j++){
-				uncore.umon[i].counter[j] >> 1;
-			}
-		}
-    }
+    int balance = 16 - NUM_CPUS;
+    while(balance--)
+        {
+            int target_cpu = 0,maxm_inc= 0;
+            for(int i=0;i<NUM_CPUS;i++)
+                {
+                    int hit_inc = uncore.umon[i].counter[uncore.LLC.max_way[i]];
+                    if(hit_inc> maxm_inc)
+                    {
+                        maxm_inc = hit_inc;
+                        target_cpu=i;
+                    }
+                }
+            uncore.LLC.max_way[target_cpu]++;
+        }
+}
 
 
 int main(int argc, char** argv)
