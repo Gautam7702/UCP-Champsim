@@ -3,6 +3,7 @@ branch/branch_predictor.cc
 
 inc/champsim.h.bak
 
+.vscode/*
 bin/
 obj/
 dpc3_traces/*
