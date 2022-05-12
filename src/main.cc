@@ -496,6 +496,74 @@ void cpu_l1i_prefetcher_cache_fill(uint32_t cpu_num, uint64_t addr, uint32_t set
   ooo_cpu[cpu_num].l1i_prefetcher_cache_fill(addr, set, way, prefetch, evicted_addr);
 }
 
+double findMU(int a,int b,int cpu)
+    {
+        int missa = 0;
+        int missb = 0;
+        for(int i=1;i<=a;i++)
+            {
+                missa += uncore.umon[cpu].counter[i];
+            }
+        for(int i=1;i<=b;i++)
+            {
+                missb += uncore.umon[cpu].counter[i];
+            }
+        return abs((missa - missb)/(a-b));
+    }
+void look_ahead(){
+        for(int i=0;i<NUM_CPUS;i++)
+            {
+                uncore.LLC.max_way[i] = 1;
+            }
+        int balance = 16 - NUM_CPUS;
+        while(1)
+            {   
+                if(balance<=0){
+                  break;
+                }
+                // **** if balance doesn't change value of balance won't change further.
+                int prev_balance = balance;
+
+                double mx = 0;
+                int mx_val = 1;
+                int flag = 0;
+
+                int assign_core = -1;
+                for(int i=0;i<NUM_CPUS;i++)
+                {
+                    double var = 0;
+                    int mx_val_loc=0;
+
+                    for(int j = uncore.LLC.max_way[i]+1;j<= (balance + uncore.LLC.max_way[i]);j++)
+                        {
+                            if(j - uncore.LLC.max_way[i] > balance) continue;
+                            if(findMU(uncore.LLC.max_way[i],j,i)>var){
+                                var = findMU(uncore.LLC.max_way[i],j,i);
+                                mx_val_loc = j;
+                            }
+                        }
+                    if(var >= mx)
+                        {
+                            mx = var;
+                            assign_core = i;
+                            mx_val = mx_val_loc;
+                        }
+                        balance -= mx_val;
+                        if(mx_val==0){
+                            int ini = i;
+                            while(balance>0){
+                                uncore.LLC.max_way[ini%NUM_CPUS] += 1;
+                                ini++;
+                                balance -= 1;
+                            }
+                            break;
+                        }
+                    uncore.LLC.max_way[assign_core] = mx_val;
+                }
+            }
+    }
+
+
 int main(int argc, char** argv)
 {
 
@@ -597,6 +665,7 @@ int main(int argc, char** argv)
     int found_traces = 0;
     int count_traces = 0;
     cout << endl;
+
     for (int i=0; i<argc; i++) {
         cout << argv[i] <<endl;
         if (found_traces)
