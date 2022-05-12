@@ -129,6 +129,7 @@ class CACHE : public MEMORY {
 
             for (uint32_t j=0; j<NUM_WAY; j++) {
                 block[i][j].lru = j;
+                block[i][j].valid = false;
             }
         }
 

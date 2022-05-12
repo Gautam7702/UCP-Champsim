@@ -1,10 +1,11 @@
 #include "cache.h"
 
+
 // initialize replacement state
 void CACHE::llc_initialize_replacement()
 {
-
-}
+    
+}   
 
 // find replacement victim
 uint32_t CACHE::llc_find_victim(uint32_t cpu, uint64_t instr_id, uint32_t set, const BLOCK *current_set, uint64_t ip, uint64_t full_addr, uint32_t type)
