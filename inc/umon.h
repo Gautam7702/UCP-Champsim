@@ -28,10 +28,12 @@ class UMON{
 		META** table;
 		uint32_t SETS, WAYS;
 		uint64_t* counter;
+		uint64_t accesses;
 
 		UMON(){
-			SETS = LLC_SET/32;
+			SETS = LLC_SET;
 			WAYS = LLC_WAY;
+			accesses = 0;
 			counter = new uint64_t[WAYS];
 			table = new META*[SETS];
 			for(int i = 0; i < WAYS; i++){
@@ -43,9 +45,9 @@ class UMON{
 		}
 		
 		bool access_block(uint64_t addr){
-			int s = get_set(addr); 
-			if(s%32 == 0 && s/32 < SETS){
-				s /= 32;
+			int s = get_set(addr);
+			accesses++;
+			if(s < SETS){
 				int w = get_way(addr, s);
 				if(w != WAYS){
 					counter[table[s][w].lru]++;

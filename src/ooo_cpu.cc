@@ -1810,11 +1810,8 @@ void O3_CPU::operate_cache()
     DTLB.operate();
     STLB.operate();
     L1I.operate();
-    // cout << "HI" << endl;
     L1D.operate();
-    // cout << "HII" << endl;
     L2C.operate();
-    // cout << "HIII" << endl;
 
     // also handle per-cycle prefetcher operation
     l1i_prefetcher_cycle_operate();

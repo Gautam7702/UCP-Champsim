@@ -100,16 +100,16 @@ uint32_t CACHE::llc_lru_victim(uint32_t cpu, uint64_t instr_id, uint32_t set, co
     uint32_t way1 = 0;
     // cout << cache_type << endl;
     // fill invalid line first
-    int max_way[NUM_CPUS]= {1,15};
+    int max_way[NUM_CPUS]= {8,8};
     for (way1=0; way1<NUM_WAY; way1++) {
-        if (current_set[way1].valid == false&&current_set[way1].cpu == cpu) {
-            break;
+        if (!current_set[way1].valid) {
+            return way1;
         }
     }
     int lru_victim[NUM_CPUS],lru_victim_value[NUM_CPUS];
     int cpu_way_count[NUM_CPUS];
     for(int i=0;i<NUM_CPUS;i++){
-            lru_victim_value[i]=-1;
+            lru_victim_value[i]=0;
             cpu_way_count[i]=0;
             lru_victim[i] = -1;
     }
@@ -119,36 +119,28 @@ uint32_t CACHE::llc_lru_victim(uint32_t cpu, uint64_t instr_id, uint32_t set, co
     for (way=0; way<NUM_WAY; way++) {
             int cur_cpu = current_set[way].cpu;
             cpu_way_count[cur_cpu]++;
-            if(current_set[way].valid == false)
-                {
-                    lru_victim[cur_cpu] = way;
-                    lru_victim_value[cur_cpu] = INT_MAX;
-                }
-            if(lru_victim_value[cur_cpu]<current_set[way].lru)
+            if(lru_victim_value[cur_cpu]<=current_set[way].lru)
                 {
                     lru_victim_value[cur_cpu] = current_set[way].lru;
                     lru_victim[cur_cpu] = way; 
                 }
         }
 
-    if (way1 == NUM_WAY) {
-    
-       if(cpu_way_count[cpu] < max_way[cpu])
-        {
-            for(int j=0;j<NUM_CPUS;j++)
-                {
-                    
-                    if(cpu_way_count[j] >max_way[j])
-                        {
-                            way1  = lru_victim[j];
-                            break;
-                        }
-                }
-        }
-        else    
-        {
-            way1 = lru_victim[cpu];
-        }
+    if(cpu_way_count[cpu] < max_way[cpu])
+    {
+        for(int j=0;j<NUM_CPUS;j++)
+            {
+                
+                if(cpu_way_count[j] >max_way[j])
+                    {
+                        way1  = lru_victim[j];
+                        break;
+                    }
+            }
+    }
+    else    
+    {
+        way1 = lru_victim[cpu];
     }
     return way1;
 }
