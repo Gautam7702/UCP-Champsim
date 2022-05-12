@@ -496,71 +496,64 @@ void cpu_l1i_prefetcher_cache_fill(uint32_t cpu_num, uint64_t addr, uint32_t set
   ooo_cpu[cpu_num].l1i_prefetcher_cache_fill(addr, set, way, prefetch, evicted_addr);
 }
 
-double findMU(int a,int b,int cpu)
-    {
-        int missa = 0;
-        int missb = 0;
-        for(int i=1;i<=a;i++)
-            {
-                missa += uncore.umon[cpu].counter[i];
-            }
-        for(int i=1;i<=b;i++)
-            {
-                missb += uncore.umon[cpu].counter[i];
-            }
-        return abs((missa - missb)/(a-b));
-    }
+double findMU(int a,int b,int cpu){
+    int missa = 0;
+    int missb = 0;
+    for(int i=1;i<=a;i++)
+        {
+            missa += uncore.umon[cpu].counter[i];
+        }
+    for(int i=1;i<=b;i++)
+        {
+            missb += uncore.umon[cpu].counter[i];
+        }
+    return abs((double)(missa - missb)/(a-b));
+}
+
 void look_ahead(){
-        for(int i=0;i<NUM_CPUS;i++)
+        for(int i=0;i<NUM_CPUS;i++){
+            uncore.LLC.max_way[i] = 1;
+        }
+        int balance = LLC_WAY - NUM_CPUS;
+        while(1){   
+            if(balance<=0){
+              break;
+            }
+            // **** if balance doesn't change value of balance won't change further.
+            double mx = 0;
+            int mx_val = 0;
+            int flag = 0;
+
+            int assign_core = 0;
+            for(int i=0;i<NUM_CPUS;i++)
             {
-                uncore.LLC.max_way[i] = 1;
+                double var = -1;
+                int mx_val_loc = uncore.LLC.max_way[i];
+
+                for(int j = uncore.LLC.max_way[i]+1;j<= (balance + uncore.LLC.max_way[i]);j++)
+                    {
+                        if(j - uncore.LLC.max_way[i] > balance) break;
+						double temp = findMU(uncore.LLC.max_way[i],j,i);
+                        if(temp > var){
+                            var = temp;
+                            mx_val_loc = j;
+                        }
+                    }
+                if(var > mx || (var == mx && uncore.LLC.max_way[assign_core] >= uncore.LLC.max_way[i]))
+                    {
+                        mx = var;
+                        assign_core = i;
+                        mx_val = mx_val_loc;
+                    }
             }
-        int balance = 16 - NUM_CPUS;
-        while(1)
-            {   
-                if(balance<=0){
-                  break;
-                }
-                // **** if balance doesn't change value of balance won't change further.
-                int prev_balance = balance;
-
-                double mx = 0;
-                int mx_val = 1;
-                int flag = 0;
-
-                int assign_core = -1;
-                for(int i=0;i<NUM_CPUS;i++)
-                {
-                    double var = 0;
-                    int mx_val_loc=0;
-
-                    for(int j = uncore.LLC.max_way[i]+1;j<= (balance + uncore.LLC.max_way[i]);j++)
-                        {
-                            if(j - uncore.LLC.max_way[i] > balance) continue;
-                            if(findMU(uncore.LLC.max_way[i],j,i)>var){
-                                var = findMU(uncore.LLC.max_way[i],j,i);
-                                mx_val_loc = j;
-                            }
-                        }
-                    if(var >= mx)
-                        {
-                            mx = var;
-                            assign_core = i;
-                            mx_val = mx_val_loc;
-                        }
-                        balance -= mx_val;
-                        if(mx_val==0){
-                            int ini = i;
-                            while(balance>0){
-                                uncore.LLC.max_way[ini%NUM_CPUS] += 1;
-                                ini++;
-                                balance -= 1;
-                            }
-                            break;
-                        }
-                    uncore.LLC.max_way[assign_core] = mx_val;
-                }
-            }
+            balance -= (mx_val-uncore.LLC.max_way[assign_core]);
+            uncore.LLC.max_way[assign_core] = mx_val;
+        }
+		for(int i = 0; i < NUM_CPUS; i++){
+			for(int j = 0; j < LLC_WAY; j++){
+				uncore.umon[i].counter[j] >> 1;
+			}
+		}
     }
 
 
@@ -841,22 +834,6 @@ int main(int argc, char** argv)
         uncore.LLC.upper_level_icache[i] = &ooo_cpu[i].L2C;
         uncore.LLC.upper_level_dcache[i] = &ooo_cpu[i].L2C;
         uncore.LLC.lower_level = &uncore.DRAM;
-        uncore.LLC.app[0] = 1;
-        uncore.LLC.app[1] = 1;
-        uncore.LLC.app[2] = 1;
-        uncore.LLC.app[3] = 1;
-        uncore.LLC.app[4] = 1;
-        uncore.LLC.app[5] = 1;
-        uncore.LLC.app[6] = 0;
-        uncore.LLC.app[7] = 1;
-        uncore.LLC.app[8] = 0;
-        uncore.LLC.app[9] = 0;
-        uncore.LLC.app[10] = 0;
-        uncore.LLC.app[11] = 0;
-        uncore.LLC.app[12] = 0;
-        uncore.LLC.app[13] = 0;
-        uncore.LLC.app[14] = 0;
-        uncore.LLC.app[15] = 0;
 
         // OFF-CHIP DRAM
         uncore.DRAM.fill_level = FILL_DRAM;
@@ -895,6 +872,10 @@ int main(int argc, char** argv)
                  elapsed_hour = elapsed_minute / 60;
         elapsed_minute -= elapsed_hour*60;
         elapsed_second -= (elapsed_hour*3600 + elapsed_minute*60);
+		
+		if(current_core_cycle[0]%5000000 == 0){
+			look_ahead();
+		}
 
         for (int i=0; i<NUM_CPUS; i++) {
             // proceed one cycle

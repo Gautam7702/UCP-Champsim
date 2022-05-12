@@ -100,7 +100,6 @@ uint32_t CACHE::llc_lru_victim(uint32_t cpu, uint64_t instr_id, uint32_t set, co
     uint32_t way1 = 0;
     // cout << cache_type << endl;
     // fill invalid line first
-    int max_way[NUM_CPUS]= {8,8};
     for (way1=0; way1<NUM_WAY; way1++) {
         if (!current_set[way1].valid) {
             return way1;

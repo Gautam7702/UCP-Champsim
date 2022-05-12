@@ -54,7 +54,7 @@ class UMON{
 					counter[table[s][w].lru]++;
 					uint8_t prev = table[s][w].lru;
 					for(int i = 0; i < WAYS; i++){
-						if(table[s][w].valid && table[s][i].lru < prev){
+						if(table[s][i].valid && table[s][i].lru < prev){
 							table[s][i].lru++;
 						}
 					}
@@ -91,20 +91,24 @@ class UMON{
 
 		uint32_t find_victim(uint32_t s){
 			for(int i = 0; i < WAYS; i++){
-				if(!table[s][i].valid)	return i;
+				if(table[s][i].valid == false)	return i;
+			}
+			for(int i = 0; i < WAYS; i++){
 				if(table[s][i].lru == WAYS-1)	return i;
 			}
 		}
 
 		void addMeta(uint64_t addr){
-			META m(addr);
 			int s = get_set(addr);
-			if(s < SETS){
+			if(s%32 == 0){
+				s /= 32;
 				int w = find_victim(s);
 				for(int i = 0; i < WAYS; i++){
-					table[s][i].lru++;
+					if(table[s][i].valid)	table[s][i].lru++;
 				}
-				table[s][w] = m;
+				table[s][w].lru = 0;
+				table[s][w].addr = addr;
+				table[s][w].valid = true;
 			}
 		}
 };

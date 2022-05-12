@@ -91,6 +91,7 @@ class CACHE : public MEMORY {
     uint32_t reads_available_this_cycle;
     uint8_t cache_type;
     int app[16];
+	uint32_t max_way[NUM_CPUS];
 
     // prefetch stats
     uint64_t pf_requested,
