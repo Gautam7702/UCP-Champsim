@@ -4,11 +4,16 @@
 #include "cache.h"
 #include "champsim.h"
 
+/*
+	G15:
+	META class defines the smallest unit of the ATD.
+	It is like the BLOCK class defined in block.h
+*/
 class META{
 	public:
-		uint8_t lru;
-		bool valid;
-		uint64_t addr;
+		uint8_t lru;		//	G15:	lru position of the block
+		bool valid;			//	G15:	whether it is a valid block
+		uint64_t addr;		//	G15:	Address of the block
 
 		META(){
 			lru = 0;
@@ -23,6 +28,11 @@ class META{
 		};
 };
 
+/*
+	G15:
+	Defines the class of a Utility monitor.
+	It has an ATD, counters and info reagarding SETS, WAYS, accesses etc.
+*/
 class UMON{
 	public:
 		META** table;
@@ -31,8 +41,8 @@ class UMON{
 		uint64_t accesses;
 
 		UMON(){
-			SETS = LLC_SET/32;
-			WAYS = LLC_WAY;
+			SETS = LLC_SET/32;		//	G15:	Every 33rd set of LLC will be used in DSS
+			WAYS = LLC_WAY;			//	G15:	Every set will have same number of ways as LLC
 			accesses = 0;
 			counter = new uint64_t[WAYS];
 			table = new META*[SETS];
@@ -44,6 +54,7 @@ class UMON{
 			}
 		}
 		
+		//	G15:	Used to access a block. If hit then update the counter else add the new addr to the ATD
 		bool access_block(uint64_t addr){
 			int s = get_set(addr);
 			accesses++;
@@ -76,10 +87,12 @@ class UMON{
 
 	private:
 
+		//	G15:	Returns the set the block maps to in an LLC
 		uint32_t get_set(uint64_t address){
 		    return (uint32_t) (address & ((1 << lg2(LLC_SET)) - 1)); 
 		};
 
+		//	G15:	Returns the way in which the block with given address is present. Returns WAYS if block not present
 		uint32_t get_way(uint64_t address, uint32_t set){
 			uint32_t way;
 		    for (way = 0; way < WAYS; way++) {
@@ -89,6 +102,7 @@ class UMON{
 		    return way;
 		};
 
+		//	G15:	Returns the way which will be evicted according to LRU policy
 		uint32_t find_victim(uint32_t s){
 			for(int i = 0; i < WAYS; i++){
 				if(table[s][i].valid == false)	return i;
@@ -98,6 +112,7 @@ class UMON{
 			}
 		}
 
+		//	G15:	Adds the block with given address to the ATD
 		void addMeta(uint64_t addr){
 			int s = get_set(addr);
 			if(s%32 == 0){

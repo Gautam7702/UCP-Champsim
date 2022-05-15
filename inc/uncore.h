@@ -12,18 +12,10 @@
 // uncore
 class UNCORE {
   public:
-	UMON umon[NUM_CPUS];
+	UMON umon[NUM_CPUS];	//	G15:	Utility monitor for each core present
+
     // LLC
     CACHE LLC{"LLC", LLC_SET, LLC_WAY, LLC_SET*LLC_WAY, LLC_WQ_SIZE, LLC_RQ_SIZE, LLC_PQ_SIZE, LLC_MSHR_SIZE};
-    // int COUNTER[16] = {};
-    // for(int i=0;i<32;i++){
-    //   for(int j=0;j<16;j++){
-    //     if()
-    //   }
-    // }
-
-
-
 
     // DRAM
     MEMORY_CONTROLLER DRAM{"DRAM"}; 

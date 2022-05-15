@@ -246,6 +246,8 @@ void CACHE::handle_writeback()
         // access cache
         uint32_t set = get_set(WQ.entry[index].address);
         int way = check_hit(&WQ.entry[index]);
+
+		//	G15:	If the access was made to LLC then make the same access to the UMON
 		if(cache_type == IS_LLC){
 			uncore.umon[writeback_cpu].access_block(WQ.entry[index].address);
 		}
@@ -548,6 +550,8 @@ void CACHE::handle_read()
             // access cache
             uint32_t set = get_set(RQ.entry[index].address);
             int way = check_hit(&RQ.entry[index]);
+
+		//	G15:	If the access was made to LLC then make the same access to the UMON
 			if(cache_type == IS_LLC){
 				uncore.umon[read_cpu].access_block(RQ.entry[index].address);
 			}
